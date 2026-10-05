@@ -1,0 +1,8 @@
+{
+  "name": "MindQuest",
+  "description": "An AI-powered mental health adventure game where your emotions shape the world. Journey through mood-specific realms, play therapeutic mini-games, and find guidance with your AI companion, Nova.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
