@@ -113,16 +113,7 @@ export class DeepLearningAnalytics {
       console.error("Failed to load timeline history:", e);
     }
 
-    // Default 7-day timeline mock data if fresh session
-    return [
-      { timestamp: '1', dayLabel: 'Mon', stress: 80, anxiety: 75, confidence: 40, hope: 35, recovery: 25, burnoutRisk: 70 },
-      { timestamp: '2', dayLabel: 'Tue', stress: 75, anxiety: 70, confidence: 45, hope: 40, recovery: 35, burnoutRisk: 65 },
-      { timestamp: '3', dayLabel: 'Wed', stress: 68, anxiety: 62, confidence: 52, hope: 48, recovery: 45, burnoutRisk: 55 },
-      { timestamp: '4', dayLabel: 'Thu', stress: 60, anxiety: 55, confidence: 60, hope: 55, recovery: 58, burnoutRisk: 45 },
-      { timestamp: '5', dayLabel: 'Fri', stress: 52, anxiety: 48, confidence: 68, hope: 65, recovery: 68, burnoutRisk: 35 },
-      { timestamp: '6', dayLabel: 'Sat', stress: 45, anxiety: 40, confidence: 75, hope: 72, recovery: 78, burnoutRisk: 25 },
-      { timestamp: '7', dayLabel: 'Today', stress: 38, anxiety: 32, confidence: 82, hope: 80, recovery: 85, burnoutRisk: 20 }
-    ];
+    return [];
   }
 
   private appendTimelinePoint(vec: PlayerEmbeddingVector, burnoutRisk: number) {

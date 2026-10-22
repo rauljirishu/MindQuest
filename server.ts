@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { emotionClassifier, evaluateEmotionModel } from "./server/emotionClassifier";
 
 dotenv.config();
 
@@ -22,11 +23,69 @@ async function startServer() {
 
   app.use(express.json());
 
+  const requestCounts = new Map<string, { count: number; resetAt: number }>();
+  app.use("/api", (req, res, next) => {
+    const now = Date.now();
+    const key = req.ip || "unknown";
+    const current = requestCounts.get(key);
+    if (!current || current.resetAt <= now) {
+      requestCounts.set(key, { count: 1, resetAt: now + 60_000 });
+      return next();
+    }
+    if (current.count >= 60) {
+      return res.status(429).json({ error: "Too many requests. Please try again in a minute." });
+    }
+    current.count += 1;
+    return next();
+  });
+
   // API Routes
+  app.post("/api/predict-emotion", (req, res) => {
+    const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
+    if (!text) return res.status(400).json({ error: "Text is required for emotion prediction." });
+    if (text.length > 1000) return res.status(413).json({ error: "Text must be 1000 characters or fewer." });
+    res.json({
+      ...emotionClassifier.predict(text),
+      disclaimer: "This is an estimate from text, not a psychological diagnosis."
+    });
+  });
+
+  app.get("/api/model-info", (_req, res) => {
+    res.json({
+      ...evaluateEmotionModel(),
+      description: "A reproducible local baseline trained on a small, original example set. Predictions are estimates, not diagnoses.",
+      datasetLicense: "Original project examples",
+      preprocessing: "Lowercase alphabetic tokenization",
+      validation: "Deterministic per-class held-out split"
+    });
+  });
+
   app.post("/api/analyze-mood", async (req, res) => {
     try {
       const { message, mood } = req.body;
+      if (typeof message !== "string" || message.trim().length === 0) {
+        return res.status(400).json({ error: "A non-empty message is required." });
+      }
+      if (message.length > 1000) return res.status(413).json({ error: "Message must be 1000 characters or fewer." });
+      const prediction = emotionClassifier.predict(message);
       
+      if (!process.env.GEMINI_API_KEY) {
+        return res.json({
+          intensity: Math.round(prediction.confidence * 10),
+          keywords: message.toLowerCase().match(/[a-z]+/g)?.slice(0, 8) || [],
+          detectedEmotion: prediction.emotion,
+          recommendation: "Take one small, kind step and notice how you feel afterward.",
+          stressLevel: prediction.emotion === "Stress" ? 7 : 4,
+          anxietyLevel: prediction.emotion === "Stress" ? 6 : 3,
+          confidence: Math.round(prediction.confidence * 10) / 10,
+          sentiment: prediction.emotion === "Happy" ? "positive" : prediction.emotion === "Neutral" ? "neutral" : "negative",
+          model: prediction.model,
+          probabilities: prediction.probabilities,
+          provider: "local-demo",
+          disclaimer: "This is an estimate from text, not a psychological diagnosis."
+        });
+      }
+
       const response = await genAI.models.generateContent({
         model: "gemini-1.5-flash",
         contents: `The user selected mood: ${mood}. User message: "${message}". 
@@ -60,21 +119,10 @@ async function startServer() {
       });
 
       const analysis = JSON.parse(response.text);
-      res.json(analysis);
+      res.json({ ...analysis, detectedEmotion: prediction.emotion, model: prediction.model, probabilities: prediction.probabilities, provider: "gemini+local-classifier", disclaimer: "This is an estimate from text, not a psychological diagnosis." });
     } catch (error) {
       console.error("Mood analysis failed:", error);
-      const messageText = String(req.body.message || '').toLowerCase();
-      const examStress = /exam|test|deadline|overwhelmed|pressure/.test(messageText);
-      res.json({
-        intensity: examStress ? 8 : 5,
-        keywords: examStress ? ["exam", "pressure", "stress"] : ["reflection"],
-        detectedEmotion: examStress ? "Stress" : (req.body.mood || "Stress"),
-        recommendation: examStress ? "Let's slow the pace, choose one small study step, and protect time for rest." : "Focus on your breath and find your center.",
-        stressLevel: examStress ? 8 : 5,
-        anxietyLevel: examStress ? 7 : 5,
-        confidence: examStress ? 3 : 5,
-        sentiment: "negative"
-      });
+      res.status(502).json({ error: "Mood analysis provider failed. Please retry or use local demo mode." });
     }
   });
 
@@ -391,4 +439,3 @@ async function startServer() {
 }
 
 startServer();
-

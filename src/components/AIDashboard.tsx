@@ -43,10 +43,10 @@ export default function AIDashboard({ onClose }: Props) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-widest text-indigo-400">MindQuest AI Analytics</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">Live Deep Learning Vector</span>
+                <span className="text-xs font-black uppercase tracking-widest text-indigo-400">MindQuest progress analytics</span>
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">Local session data</span>
               </div>
-              <h2 className="text-2xl font-black text-white">Clinical AI Dashboard</h2>
+              <h2 className="text-2xl font-black text-white">Your progress dashboard</h2>
             </div>
           </div>
 
@@ -112,7 +112,7 @@ export default function AIDashboard({ onClose }: Props) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-black text-lg text-white">Stress & Anxiety Evolution Trend</h3>
-                <p className="text-xs text-slate-400">7-Session NLP & Gameplay Historical Telemetry</p>
+                <p className="text-xs text-slate-400">{timeline.length ? 'Saved check-ins and gameplay outcomes' : 'Complete a check-in to start your trend'}</p>
               </div>
               <Activity className="w-5 h-5 text-indigo-400" />
             </div>
@@ -137,7 +137,7 @@ export default function AIDashboard({ onClose }: Props) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-black text-lg text-white">8D Player Embedding Radar</h3>
-                <p className="text-xs text-slate-400">Deep Learning Multidimensional Personality & Psychological State</p>
+                <p className="text-xs text-slate-400">A lightweight reflection of saved game progress</p>
               </div>
               <Brain className="w-5 h-5 text-purple-400" />
             </div>

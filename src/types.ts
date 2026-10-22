@@ -9,6 +9,10 @@ export interface MoodAnalysis {
   anxietyLevel: number;
   confidence: number;
   sentiment: 'positive' | 'negative' | 'neutral';
+  model?: string;
+  provider?: 'local-demo' | 'gemini+local-classifier';
+  probabilities?: Record<string, number>;
+  disclaimer?: string;
 }
 
 export interface GameSettings {
@@ -130,4 +134,3 @@ export interface HappyFestivalQuest {
   points: number;
   completed: boolean;
 }
-
